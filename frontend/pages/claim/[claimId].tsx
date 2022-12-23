@@ -5,8 +5,8 @@ import Layout from "components/Layout"; // Layout wrapper
 import styles from "styles/pages/Claim.module.scss"; // Page styles
 import { useRouter } from 'next/router';
 import config from "config"; // Airdrop config
-import { ethers } from "ethers"; // Ethers
 import { getAllClaimIds, getClaimIdData } from '../../lib/claim';
+import { ethers } from "ethers";
 
 export async function getStaticPaths() {
     // Return a list of possible value for ClaimId
@@ -36,7 +36,7 @@ export default function Claim() {
   const router = useRouter()
   // Global ETH state
   let claimId: number = Number(router.query.claimId)
-  const { address, unlock }: { address: string | null; unlock: Function } =
+  const { address, unlock, provider }: { address: string | null; unlock: Function, provider: ethers.providers.Web3Provider | null } =
     eth.useContainer();
   // Global token state
   const {
@@ -65,11 +65,11 @@ export default function Claim() {
   return (
     <Layout key={router.asPath}>
       <div className={styles.claim}>
-        {!address ? (
+        {(!address)  ? (
           // Not authenticated
           <div className={styles.card}>
             <h1>You are not authenticated.</h1>
-            <p>Please connect with your wallet to check your airdrop.</p>
+            <p>Please connect with your wallet to Gnosis Chain.</p>
             <button onClick={() => unlock()}>Connect Wallet</button>
           </div>
         ) : dataLoading ? (
