@@ -138,7 +138,6 @@ function useToken() {
 
     // Try to claim airdrop and refresh sync status
     try {
-      console.log(leaf, index)
       console.log(`asset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
       const tx = await token.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
       await tx.wait(1);

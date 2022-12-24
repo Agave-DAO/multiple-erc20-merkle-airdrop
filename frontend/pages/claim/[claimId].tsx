@@ -6,7 +6,7 @@ import styles from "styles/pages/Claim.module.scss"; // Page styles
 import { useRouter } from 'next/router';
 import config from "config"; // Airdrop config
 import { getAllClaimIds, getClaimIdData } from '../../lib/claim';
-import { ethers } from "ethers";
+import { constants, ethers } from "ethers";
 
 export async function getStaticPaths() {
     // Return a list of possible value for ClaimId
@@ -78,7 +78,7 @@ export default function Claim() {
             <h1>Loading airdrop details...</h1>
             <p>Please hold while we collect details about your address.</p>
           </div>
-        ) : numTokens == "0" ? (
+        ) : Number(numTokens) === 0 ? (
           // Not part of airdrop
           <div className={styles.card}>
             <h1>You do not qualify.</h1>
