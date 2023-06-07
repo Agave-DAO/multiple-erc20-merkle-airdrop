@@ -31,7 +31,7 @@ function merkleTree(index:number){
   Object.entries(config[index].addresses).map(([address, tokens]) =>
     generateLeaf(
       ethers.utils.getAddress(address),
-      ethers.utils.parseUnits(tokens, config[index].decimals).toString()
+      ethers.utils.parseUnits(tokens, 0).toString()
     )
   ),
   // Hashing function
