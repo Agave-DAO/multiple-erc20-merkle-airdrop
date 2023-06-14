@@ -62,12 +62,13 @@ function useToken() {
 
   /**
    * Get contract
+   * @param {string} address to check
    * @returns {ethers.Contract} signer-initialized contract
    */
-  const getContract = (): ethers.Contract => {
+  const getContract = (merkleContract: string): ethers.Contract => {
     return new ethers.Contract(
       // Contract address
-      process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ?? "",
+      merkleContract,
       [
         // hasClaimed mapping
         "function hasClaimed(address token, address user) public view returns (bool)",
@@ -107,13 +108,15 @@ function useToken() {
    */
   const getClaimedStatus = async (address: string): Promise<boolean> => {
     // Collect token contract
-    address = ethers.utils.getAddress(address);
-    const token: ethers.Contract = getContract();
+    address = ethers.utils.getAddress(address); 
+    const merkleContract1: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS1 ?? "");
+    const merkleContract2: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS2 ?? "");
     // Return claimed status
     let assetToClaim:string = config[index].token
 
-    let hasClaimedOut = await token.hasClaimed(assetToClaim, address)
-    return hasClaimedOut;
+    let hasClaimedOut1 = await merkleContract1.hasClaimed(assetToClaim, address)
+    let hasClaimedOut2 = await merkleContract2.hasClaimed(assetToClaim, address)
+    return (hasClaimedOut1 && hasClaimedOut2);
   };
 
   const claimAirdrop = async (claimId:number): Promise<void> => {
@@ -125,7 +128,8 @@ function useToken() {
     }
 
     // Collect token contract
-    const token: ethers.Contract = getContract();
+    const merkleContract1: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS1 ?? "");
+    const merkleContract2: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS2 ?? "");
     // Get properly formatted address
     const formattedAddress: string = ethers.utils.getAddress(address);
     // Get tokens for address
@@ -136,15 +140,29 @@ function useToken() {
     // Generate airdrop proof
     const proof: string[] = merkleTree(index).getHexProof(leaf);
 
+    let hasClaimedOut1 = await merkleContract1.hasClaimed(assetToClaim, address)
+    let hasClaimedOut2 = await merkleContract2.hasClaimed(assetToClaim, address)
+    if (!hasClaimedOut1){
     // Try to claim airdrop and refresh sync status
     try {
       console.log(`asset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
-      const tx = await token.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
+      const tx = await merkleContract1.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
       await tx.wait(1);
       await syncStatus();
     } catch (e) {
       console.error(`Error when claiming tokens: ${e}`);
     }
+  }
+  if (!hasClaimedOut2){
+    try {
+      console.log(`asset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
+      const tx = await merkleContract2.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
+      await tx.wait(1);
+      await syncStatus();
+    } catch (e) {
+      console.error(`Error when claiming tokens: ${e}`);
+    }
+  }
   };
 
   /**
