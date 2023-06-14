@@ -111,10 +111,15 @@ function useToken() {
     address = ethers.utils.getAddress(address); 
     const merkleContract1: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS1 ?? "");
     const merkleContract2: ethers.Contract = getContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS2 ?? "");
+    
     // Return claimed status
     let assetToClaim:string = config[index].token
-
-    let hasClaimedOut1 = await merkleContract1.hasClaimed(assetToClaim, address)
+    let assetToClaim1 = assetToClaim
+    if (assetToClaim === "0xE2e73A1c69ecF83F464EFCE6A5be353a37cA09b2"){
+      assetToClaim1 = "0xa286Ce70FB3a6269676c8d99BD9860DE212252Ef";
+    }
+    
+    let hasClaimedOut1 = await merkleContract1.hasClaimed(assetToClaim1, address)
     let hasClaimedOut2 = await merkleContract2.hasClaimed(assetToClaim, address)
     return (hasClaimedOut1 && hasClaimedOut2);
   };
@@ -145,8 +150,12 @@ function useToken() {
     if (!hasClaimedOut1){
     // Try to claim airdrop and refresh sync status
     try {
-      console.log(`asset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
-      const tx = await merkleContract1.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
+      let asset = assetToClaim;
+      if (assetToClaim === "0xE2e73A1c69ecF83F464EFCE6A5be353a37cA09b2"){
+        asset = "0xa286Ce70FB3a6269676c8d99BD9860DE212252Ef";
+      }
+      console.log(`contract:${merkleContract1.address}\nasset:${asset}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
+      const tx = await merkleContract1.claim(asset, formattedAddress, numTokensInWei, proof);
       await tx.wait(1);
       await syncStatus();
     } catch (e) {
@@ -155,7 +164,7 @@ function useToken() {
   }
   if (!hasClaimedOut2){
     try {
-      console.log(`asset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
+      console.log(`contract:${merkleContract2.address}\nasset:${assetToClaim}\nuser: ${formattedAddress}\namount: ${numTokensInWei}\nproof: ${proof}`);
       const tx = await merkleContract2.claim(assetToClaim, formattedAddress, numTokensInWei, proof);
       await tx.wait(1);
       await syncStatus();
