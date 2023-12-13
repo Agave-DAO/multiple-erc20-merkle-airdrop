@@ -10,7 +10,7 @@
     "export": "next export" 
   },
   "dependencies": {
-    "bnc-onboard": "^1.37.0",
+    "bnc-onboard": "^1.39.1",
     "ethers": "^5.5.2",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.2.27",
